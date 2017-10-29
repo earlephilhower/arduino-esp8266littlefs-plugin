@@ -2,9 +2,10 @@
 
 /*
   Tool to put the contents of the sketch's "data" subfolder
-  into an SPIFFS partition image and upload it to an ESP8266 MCU
+  into an FastROMFS partition image and upload it to an ESP8266 MCU
 
-  Copyright (c) 2015 Hristo Gochkov (ficeto at ficeto dot com)
+  Original copyright (c) 2015 Hristo Gochkov (ficeto at ficeto dot com)
+  Modified from SPIFFS to FastROMFS by Earle F. Philhower, III
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -21,7 +22,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-package com.esp8266.mkspiffs;
+package com.esp8266.mkfastromfs;
 
 import java.io.File;
 import java.io.BufferedReader;
@@ -52,7 +53,7 @@ import cc.arduino.files.DeleteFilesOnShutdown;
 /**
  * Example Tools menu entry.
  */
-public class ESP8266FS implements Tool {
+public class ESP8266FastROMFS implements Tool {
   Editor editor;
 
 
@@ -62,7 +63,7 @@ public class ESP8266FS implements Tool {
 
 
   public String getMenuTitle() {
-    return "ESP8266 Sketch Data Upload";
+    return "ESP8266 FastROMFS Data Upload";
   }
 
   private int listenOnProcess(String[] arguments){
@@ -98,12 +99,12 @@ public class ESP8266FS implements Tool {
       public void run() {
         try {
           if(listenOnProcess(arguments) != 0){
-            editor.statusError("SPIFFS Upload failed!");
+            editor.statusError("FastROMFS Upload failed!");
           } else {
-            editor.statusNotice("SPIFFS Image Uploaded");
+            editor.statusNotice("FastROMFS Image Uploaded");
           }
         } catch (Exception e){
-          editor.statusError("SPIFFS Upload failed!");
+          editor.statusError("FastROMFS Upload failed!");
         }
       }
     };
@@ -160,13 +161,13 @@ public class ESP8266FS implements Tool {
   private void createAndUpload(){
     if(!PreferencesData.get("target_platform").contentEquals("esp8266")){
       System.err.println();
-      editor.statusError("SPIFFS Not Supported on "+PreferencesData.get("target_platform"));
+      editor.statusError("FastROMFS Not Supported on "+PreferencesData.get("target_platform"));
       return;
     }
 
     if(!BaseNoGui.getBoardPreferences().containsKey("build.spiffs_start") || !BaseNoGui.getBoardPreferences().containsKey("build.spiffs_end")){
       System.err.println();
-      editor.statusError("SPIFFS Not Defined for "+BaseNoGui.getBoardPreferences().get("name"));
+      editor.statusError("FastROMFS Not Defined for "+BaseNoGui.getBoardPreferences().get("name"));
       return;
     }
     long spiStart, spiEnd, spiPage, spiBlock;
@@ -187,18 +188,18 @@ public class ESP8266FS implements Tool {
     //Make sure mkspiffs binary exists
     String mkspiffsCmd;
     if(PreferencesData.get("runtime.os").contentEquals("windows"))
-        mkspiffsCmd = "mkspiffs.exe";
+        mkspiffsCmd = "mkfastromfs.exe";
     else
-        mkspiffsCmd = "mkspiffs";
+        mkspiffsCmd = "mkfastromfs";
 
     File tool = new File(platform.getFolder() + "/tools", mkspiffsCmd);
     if (!tool.exists() || !tool.isFile()) {
-      tool = new File(platform.getFolder() + "/tools/mkspiffs", mkspiffsCmd);
+      tool = new File(platform.getFolder() + "/tools/mkfastromfs", mkspiffsCmd);
       if (!tool.exists()) {
-        tool = new File(PreferencesData.get("runtime.tools.mkspiffs.path"), mkspiffsCmd);
+        tool = new File(PreferencesData.get("runtime.tools.mkfastromfs.path"), mkspiffsCmd);
         if (!tool.exists()) {
             System.err.println();
-            editor.statusError("SPIFFS Error: mkspiffs not found!");
+            editor.statusError("FastROMFS Error: mkspiffs not found!");
             return;
         }
       }
@@ -212,7 +213,7 @@ public class ESP8266FS implements Tool {
     //make sure the serial port or IP is defined
     if (serialPort == null || serialPort.isEmpty()) {
       System.err.println();
-      editor.statusError("SPIFFS Error: serial port not defined!");
+      editor.statusError("FastROMFS Error: serial port not defined!");
       return;
     }
 
@@ -223,7 +224,7 @@ public class ESP8266FS implements Tool {
       espota = new File(platform.getFolder()+"/tools", espotaCmd);
       if(!espota.exists() || !espota.isFile()){
         System.err.println();
-        editor.statusError("SPIFFS Error: espota not found!");
+        editor.statusError("FastROMFS Error: espota not found!");
         return;
       }
     } else {
@@ -235,7 +236,7 @@ public class ESP8266FS implements Tool {
           esptool = new File(PreferencesData.get("runtime.tools.esptool.path"), esptoolCmd);
           if (!esptool.exists()) {
               System.err.println();
-              editor.statusError("SPIFFS Error: esptool not found!");
+              editor.statusError("FastROMFS Error: esptool not found!");
               return;
           }
         }
@@ -260,7 +261,7 @@ public class ESP8266FS implements Tool {
     String dataPath = dataFolder.getAbsolutePath();
     String toolPath = tool.getAbsolutePath();
     String sketchName = editor.getSketch().getName();
-    String imagePath = getBuildFolderPath(editor.getSketch()) + "/" + sketchName + ".spiffs.bin";
+    String imagePath = getBuildFolderPath(editor.getSketch()) + "/" + sketchName + ".fastromfs.bin";
     String resetMethod = BaseNoGui.getBoardPreferences().get("upload.resetmethod");
     String uploadSpeed = BaseNoGui.getBoardPreferences().get("upload.speed");
     String uploadAddress = BaseNoGui.getBoardPreferences().get("build.spiffs_start");
@@ -268,35 +269,35 @@ public class ESP8266FS implements Tool {
     
 
     Object[] options = { "Yes", "No" };
-    String title = "SPIFFS Create";
+    String title = "FastROMFS Create";
     String message = "No files have been found in your data folder!\nAre you sure you want to create an empty SPIFFS image?";
 
     if(fileCount == 0 && JOptionPane.showOptionDialog(editor, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]) != JOptionPane.YES_OPTION){
       System.err.println();
-      editor.statusError("SPIFFS Warning: mkspiffs canceled!");
+      editor.statusError("FastROMFS Warning: mkfastromfs canceled!");
       return;
     }
 
-    editor.statusNotice("SPIFFS Creating Image...");
-    System.out.println("[SPIFFS] data   : "+dataPath);
-    System.out.println("[SPIFFS] size   : "+((spiEnd - spiStart)/1024));
-    System.out.println("[SPIFFS] page   : "+spiPage);
-    System.out.println("[SPIFFS] block  : "+spiBlock);
+    editor.statusNotice("FastROMFS Creating Image...");
+    System.out.println("[FastROMFS] data   : "+dataPath);
+    System.out.println("[FastROMFS] size   : "+((spiEnd - spiStart)/1024));
+    System.out.println("[FastROMFS] page   : "+spiPage);
+    System.out.println("[FastROMFS] block  : "+spiBlock);
 
     try {
-      if(listenOnProcess(new String[]{toolPath, "-c", dataPath, "-p", spiPage+"", "-b", spiBlock+"", "-s", (spiEnd - spiStart)+"", imagePath}) != 0){
+      if(listenOnProcess(new String[]{toolPath, "--dir", dataPath, "--sectors", ((spiEnd - spiStart)/4096)+"", "--out", imagePath}) != 0) {
         System.err.println();
-        editor.statusError("SPIFFS Create Failed!");
+        editor.statusError("FastROMFS Create Failed!");
         return;
       }
     } catch (Exception e){
       editor.statusError(e);
-      editor.statusError("SPIFFS Create Failed!");
+      editor.statusError("FastROMFS Create Failed!");
       return;
     }
 
-    editor.statusNotice("SPIFFS Uploading Image...");
-    System.out.println("[SPIFFS] upload : "+imagePath);
+    editor.statusNotice("FastROMFS Uploading Image...");
+    System.out.println("[FastROMFS] upload : "+imagePath);
     
     if(isNetwork){
       String pythonCmd;
@@ -305,14 +306,14 @@ public class ESP8266FS implements Tool {
       else
           pythonCmd = "python";
       
-      System.out.println("[SPIFFS] IP     : "+serialPort);
+      System.out.println("[FastROMFS] IP     : "+serialPort);
       System.out.println();
       sysExec(new String[]{pythonCmd, espota.getAbsolutePath(), "-i", serialPort, "-s", "-f", imagePath});
     } else {
-      System.out.println("[SPIFFS] address: "+uploadAddress);
-      System.out.println("[SPIFFS] reset  : "+resetMethod);
-      System.out.println("[SPIFFS] port   : "+serialPort);
-      System.out.println("[SPIFFS] speed  : "+uploadSpeed);
+      System.out.println("[FastROMFS] address: "+uploadAddress);
+      System.out.println("[FastROMFS] reset  : "+resetMethod);
+      System.out.println("[FastROMFS] port   : "+serialPort);
+      System.out.println("[FastROMFS] speed  : "+uploadSpeed);
       System.out.println();
       sysExec(new String[]{esptool.getAbsolutePath(), "-cd", resetMethod, "-cb", uploadSpeed, "-cp", serialPort, "-ca", uploadAddress, "-cf", imagePath});
     }
