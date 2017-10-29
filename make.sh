@@ -33,5 +33,6 @@ dist=$PWD/dist
 rev=$(git describe --tags)
 mkdir -p $dist
 pushd $INSTALLDIR/tools
+rm -f $dist/*.zip
 zip -r $dist/ESP8266FastROMFS-$rev.zip ESP8266FastROMFS/
 popd

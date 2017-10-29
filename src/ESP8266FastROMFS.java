@@ -185,21 +185,21 @@ public class ESP8266FastROMFS implements Tool {
 
     TargetPlatform platform = BaseNoGui.getTargetPlatform();
     
-    //Make sure mkspiffs binary exists
+    //Make sure fastromfstool binary exists
     String mkspiffsCmd;
     if(PreferencesData.get("runtime.os").contentEquals("windows"))
-        mkspiffsCmd = "mkfastromfs.exe";
+        mkspiffsCmd = "fastromfstool.exe";
     else
-        mkspiffsCmd = "mkfastromfs";
+        mkspiffsCmd = "fastromfstool";
 
     File tool = new File(platform.getFolder() + "/tools", mkspiffsCmd);
     if (!tool.exists() || !tool.isFile()) {
-      tool = new File(platform.getFolder() + "/tools/mkfastromfs", mkspiffsCmd);
+      tool = new File(platform.getFolder() + "/tools/fastromfstool", mkspiffsCmd);
       if (!tool.exists()) {
-        tool = new File(PreferencesData.get("runtime.tools.mkfastromfs.path"), mkspiffsCmd);
+        tool = new File(PreferencesData.get("runtime.tools.fastromfstool.path"), mkspiffsCmd);
         if (!tool.exists()) {
             System.err.println();
-            editor.statusError("FastROMFS Error: mkspiffs not found!");
+            editor.statusError("FastROMFS Error: fastromfstool not found!");
             return;
         }
       }
@@ -270,22 +270,20 @@ public class ESP8266FastROMFS implements Tool {
 
     Object[] options = { "Yes", "No" };
     String title = "FastROMFS Create";
-    String message = "No files have been found in your data folder!\nAre you sure you want to create an empty SPIFFS image?";
+    String message = "No files have been found in your data folder!\nAre you sure you want to create an empty FastROMFS image?";
 
     if(fileCount == 0 && JOptionPane.showOptionDialog(editor, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]) != JOptionPane.YES_OPTION){
       System.err.println();
-      editor.statusError("FastROMFS Warning: mkfastromfs canceled!");
+      editor.statusError("FastROMFS Warning: fastromfstool canceled!");
       return;
     }
 
     editor.statusNotice("FastROMFS Creating Image...");
-    System.out.println("[FastROMFS] data   : "+dataPath);
-    System.out.println("[FastROMFS] size   : "+((spiEnd - spiStart)/1024));
-    System.out.println("[FastROMFS] page   : "+spiPage);
-    System.out.println("[FastROMFS] block  : "+spiBlock);
+    System.out.println("[FastROMFS] data    : "+dataPath);
+    System.out.println("[FastROMFS] sectors : "+((spiEnd - spiStart)/4096));
 
     try {
-      if(listenOnProcess(new String[]{toolPath, "--dir", dataPath, "--sectors", ((spiEnd - spiStart)/4096)+"", "--out", imagePath}) != 0) {
+      if(listenOnProcess(new String[]{toolPath, "mkfs", "--dir", dataPath, "--sectors", ((spiEnd - spiStart)/4096)+"", "--image", imagePath}) != 0) {
         System.err.println();
         editor.statusError("FastROMFS Create Failed!");
         return;
