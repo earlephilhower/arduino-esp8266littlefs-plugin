@@ -2,10 +2,10 @@
 
 /*
   Tool to put the contents of the sketch's "data" subfolder
-  into an FastROMFS partition image and upload it to an ESP8266 MCU
+  into a LittleFS partition image and upload it to an ESP8266 MCU
 
   Original copyright (c) 2015 Hristo Gochkov (ficeto at ficeto dot com)
-  Modified from SPIFFS to FastROMFS by Earle F. Philhower, III
+  Modified from SPIFFS to LittleFS by Earle F. Philhower, III
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
   Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
 
-package com.esp8266.mkfastromfs;
+package com.esp8266.mklittlefs;
 
 import java.io.File;
 import java.io.BufferedReader;
@@ -53,7 +53,7 @@ import cc.arduino.files.DeleteFilesOnShutdown;
 /**
  * Example Tools menu entry.
  */
-public class ESP8266FastROMFS implements Tool {
+public class ESP8266LittleFS implements Tool {
   Editor editor;
 
 
@@ -63,7 +63,7 @@ public class ESP8266FastROMFS implements Tool {
 
 
   public String getMenuTitle() {
-    return "ESP8266 FastROMFS Data Upload";
+    return "ESP8266 LittleFS Data Upload";
   }
 
   private int listenOnProcess(String[] arguments){
@@ -99,12 +99,12 @@ public class ESP8266FastROMFS implements Tool {
       public void run() {
         try {
           if(listenOnProcess(arguments) != 0){
-            editor.statusError("FastROMFS Upload failed!");
+            editor.statusError("LittleFS Upload failed!");
           } else {
-            editor.statusNotice("FastROMFS Image Uploaded");
+            editor.statusNotice("LittleFS Image Uploaded");
           }
         } catch (Exception e){
-          editor.statusError("FastROMFS Upload failed!");
+          editor.statusError("LittleFS Upload failed!");
         }
       }
     };
@@ -161,13 +161,13 @@ public class ESP8266FastROMFS implements Tool {
   private void createAndUpload(){
     if(!PreferencesData.get("target_platform").contentEquals("esp8266")){
       System.err.println();
-      editor.statusError("FastROMFS Not Supported on "+PreferencesData.get("target_platform"));
+      editor.statusError("LittleFS Not Supported on "+PreferencesData.get("target_platform"));
       return;
     }
 
     if(!BaseNoGui.getBoardPreferences().containsKey("build.spiffs_start") || !BaseNoGui.getBoardPreferences().containsKey("build.spiffs_end")){
       System.err.println();
-      editor.statusError("FastROMFS Not Defined for "+BaseNoGui.getBoardPreferences().get("name"));
+      editor.statusError("LittleFS Not Defined for "+BaseNoGui.getBoardPreferences().get("name"));
       return;
     }
     long spiStart, spiEnd, spiPage, spiBlock;
@@ -185,21 +185,21 @@ public class ESP8266FastROMFS implements Tool {
 
     TargetPlatform platform = BaseNoGui.getTargetPlatform();
     
-    //Make sure fastromfstool binary exists
+    //Make sure mklittlefs binary exists
     String mkspiffsCmd;
     if(PreferencesData.get("runtime.os").contentEquals("windows"))
-        mkspiffsCmd = "fastromfstool.exe";
+        mkspiffsCmd = "mklittlefs.exe";
     else
-        mkspiffsCmd = "fastromfstool";
+        mkspiffsCmd = "mklittlefs";
 
     File tool = new File(platform.getFolder() + "/tools", mkspiffsCmd);
     if (!tool.exists() || !tool.isFile()) {
-      tool = new File(platform.getFolder() + "/tools/fastromfstool", mkspiffsCmd);
+      tool = new File(platform.getFolder() + "/tools/mklittlefs", mkspiffsCmd);
       if (!tool.exists()) {
-        tool = new File(PreferencesData.get("runtime.tools.fastromfstool.path"), mkspiffsCmd);
+        tool = new File(PreferencesData.get("runtime.tools.mklittlefs.path"), mkspiffsCmd);
         if (!tool.exists()) {
             System.err.println();
-            editor.statusError("FastROMFS Error: fastromfstool not found!");
+            editor.statusError("LittleFS Error: mklittlefs not found!");
             return;
         }
       }
@@ -213,7 +213,7 @@ public class ESP8266FastROMFS implements Tool {
     //make sure the serial port or IP is defined
     if (serialPort == null || serialPort.isEmpty()) {
       System.err.println();
-      editor.statusError("FastROMFS Error: serial port not defined!");
+      editor.statusError("LittleFS Error: serial port not defined!");
       return;
     }
 
@@ -224,7 +224,7 @@ public class ESP8266FastROMFS implements Tool {
       espota = new File(platform.getFolder()+"/tools", espotaCmd);
       if(!espota.exists() || !espota.isFile()){
         System.err.println();
-        editor.statusError("FastROMFS Error: espota not found!");
+        editor.statusError("LittleFS Error: espota not found!");
         return;
       }
     } else {
@@ -236,7 +236,7 @@ public class ESP8266FastROMFS implements Tool {
           esptool = new File(PreferencesData.get("runtime.tools.esptool.path"), esptoolCmd);
           if (!esptool.exists()) {
               System.err.println();
-              editor.statusError("FastROMFS Error: esptool not found!");
+              editor.statusError("LittleFS Error: esptool not found!");
               return;
           }
         }
@@ -261,7 +261,7 @@ public class ESP8266FastROMFS implements Tool {
     String dataPath = dataFolder.getAbsolutePath();
     String toolPath = tool.getAbsolutePath();
     String sketchName = editor.getSketch().getName();
-    String imagePath = getBuildFolderPath(editor.getSketch()) + "/" + sketchName + ".fastromfs.bin";
+    String imagePath = getBuildFolderPath(editor.getSketch()) + "/" + sketchName + ".mklittlefs.bin";
     String resetMethod = BaseNoGui.getBoardPreferences().get("upload.resetmethod");
     String uploadSpeed = BaseNoGui.getBoardPreferences().get("upload.speed");
     String uploadAddress = BaseNoGui.getBoardPreferences().get("build.spiffs_start");
@@ -269,33 +269,35 @@ public class ESP8266FastROMFS implements Tool {
     
 
     Object[] options = { "Yes", "No" };
-    String title = "FastROMFS Create";
-    String message = "No files have been found in your data folder!\nAre you sure you want to create an empty FastROMFS image?";
+    String title = "LittleFS Create";
+    String message = "No files have been found in your data folder!\nAre you sure you want to create an empty LittleFS image?";
 
     if(fileCount == 0 && JOptionPane.showOptionDialog(editor, message, title, JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, options, options[1]) != JOptionPane.YES_OPTION){
       System.err.println();
-      editor.statusError("FastROMFS Warning: fastromfstool canceled!");
+      editor.statusError("LittleFS Warning: mklittlefs canceled!");
       return;
     }
 
-    editor.statusNotice("FastROMFS Creating Image...");
-    System.out.println("[FastROMFS] data    : "+dataPath);
-    System.out.println("[FastROMFS] sectors : "+((spiEnd - spiStart)/4096));
+    editor.statusNotice("LittleFS Creating Image...");
+    System.out.println("[LittleFS] data   : "+dataPath);
+    System.out.println("[LittleFS] size   : "+((spiEnd - spiStart)/1024));
+    System.out.println("[LittleFS] page   : "+spiPage);
+    System.out.println("[LittleFS] block  : "+spiBlock);
 
     try {
-      if(listenOnProcess(new String[]{toolPath, "mkfs", "--dir", dataPath, "--sectors", ((spiEnd - spiStart)/4096)+"", "--image", imagePath}) != 0) {
+      if(listenOnProcess(new String[]{toolPath, "-c", dataPath, "-p", spiPage+"", "-b", spiBlock+"", "-s", (spiEnd - spiStart)+"", imagePath}) != 0) {
         System.err.println();
-        editor.statusError("FastROMFS Create Failed!");
+        editor.statusError("LittleFS Create Failed!");
         return;
       }
     } catch (Exception e){
       editor.statusError(e);
-      editor.statusError("FastROMFS Create Failed!");
+      editor.statusError("LittleFS Create Failed!");
       return;
     }
 
-    editor.statusNotice("FastROMFS Uploading Image...");
-    System.out.println("[FastROMFS] upload : "+imagePath);
+    editor.statusNotice("LittleFS Uploading Image...");
+    System.out.println("[LittleFS] upload : "+imagePath);
     
     if(isNetwork){
       String pythonCmd;
@@ -304,14 +306,14 @@ public class ESP8266FastROMFS implements Tool {
       else
           pythonCmd = "python";
       
-      System.out.println("[FastROMFS] IP     : "+serialPort);
+      System.out.println("[LittleFS] IP     : "+serialPort);
       System.out.println();
       sysExec(new String[]{pythonCmd, espota.getAbsolutePath(), "-i", serialPort, "-s", "-f", imagePath});
     } else {
-      System.out.println("[FastROMFS] address: "+uploadAddress);
-      System.out.println("[FastROMFS] reset  : "+resetMethod);
-      System.out.println("[FastROMFS] port   : "+serialPort);
-      System.out.println("[FastROMFS] speed  : "+uploadSpeed);
+      System.out.println("[LittleFS] address: "+uploadAddress);
+      System.out.println("[LittleFS] reset  : "+resetMethod);
+      System.out.println("[LittleFS] port   : "+serialPort);
+      System.out.println("[LittleFS] speed  : "+uploadSpeed);
       System.out.println();
       sysExec(new String[]{esptool.getAbsolutePath(), "-cd", resetMethod, "-cb", uploadSpeed, "-cp", serialPort, "-ca", uploadAddress, "-cf", imagePath});
     }

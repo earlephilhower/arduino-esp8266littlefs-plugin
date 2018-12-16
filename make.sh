@@ -20,13 +20,13 @@ set -e
 
 mkdir -p bin
 javac -target 1.8 -cp "$pde_path:$core_path:$lib_path" \
-      -d bin src/ESP8266FastROMFS.java
+      -d bin src/ESP8266LittleFS.java
 
 pushd bin
 mkdir -p $INSTALLDIR/tools
-rm -rf $INSTALLDIR/tools/ESP8266FastROMFS
-mkdir -p $INSTALLDIR/tools/ESP8266FastROMFS/tool
-zip -r $INSTALLDIR/tools/ESP8266FastROMFS/tool/esp8266fastromfs.jar *
+rm -rf $INSTALLDIR/tools/ESP8266LittleFS
+mkdir -p $INSTALLDIR/tools/ESP8266LittleFS/tool
+zip -r $INSTALLDIR/tools/ESP8266LittleFS/tool/esp8266littlefs.jar *
 popd
 
 dist=$PWD/dist
@@ -34,5 +34,5 @@ rev=$(git describe --tags)
 mkdir -p $dist
 pushd $INSTALLDIR/tools
 rm -f $dist/*.zip
-zip -r $dist/ESP8266FastROMFS-$rev.zip ESP8266FastROMFS/
+zip -r $dist/ESP8266LittleFS-$rev.zip ESP8266LittleFS/
 popd
