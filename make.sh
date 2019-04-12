@@ -19,7 +19,7 @@ echo "lib_path: $lib_path"
 set -e
 
 mkdir -p bin
-javac -target 1.8 -cp "$pde_path:$core_path:$lib_path" \
+javac -target 1.8 -source 1.8 -cp "$pde_path:$core_path:$lib_path" \
       -d bin src/ESP8266LittleFS.java
 
 pushd bin
