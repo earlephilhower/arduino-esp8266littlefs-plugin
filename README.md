@@ -6,7 +6,7 @@ and uploads the image to ESP8266 flash memory.
 
 ## Installation
 - Make sure you use one of the supported versions of Arduino IDE and have ESP8266 core installed.
-- Download the tool archive from (https://github.com/earlephilhower/arduino-esp8266littlefs-plugin).
+- Download the tool archive from (https://github.com/earlephilhower/arduino-esp8266littlefs-plugin/releases).
 - In your Arduino sketchbook directory, create tools directory if it doesn't exist yet.
 - Unpack the tool into tools directory (the path will look like `<home_dir>/Arduino/tools/ESP8266LittleFS/tool/esp8266littlefs.jar)`.
 - Restart Arduino IDE. 
