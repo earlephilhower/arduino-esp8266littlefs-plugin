@@ -25,6 +25,8 @@ On the OS X create the tools directory in ~/Documents/Arduino/ and unpack the fi
 
 ![Screenshot](screenshot.png)
 
+![DialogBox](PasswordDialogBox.png)
+
 ## Credits and license
 
 - Copyright (c) 2015 Hristo Gochkov (ficeto at ficeto dot com)
