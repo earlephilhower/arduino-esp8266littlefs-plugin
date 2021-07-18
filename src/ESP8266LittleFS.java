@@ -6,6 +6,7 @@
 
   Original copyright (c) 2015 Hristo Gochkov (ficeto at ficeto dot com)
   Modified from SPIFFS to LittleFS by Earle F. Philhower, III
+  Modified for OTA password by Ladi Kehl
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -320,7 +321,17 @@ public class ESP8266LittleFS implements Tool {
     if(isNetwork){
       System.out.println("[LittleFS] IP      : "+serialPort);
       System.out.println();
-      sysExec(new String[]{pythonCmd, espota.getAbsolutePath(), "-i", serialPort, "-s", "-f", imagePath});
+
+			// ask for a password
+			String passCode = JOptionPane.showInputDialog(editor, "Please enter password:\n(leave empty if none required!)","ESP8266LittleFS OTA Update", JOptionPane.QUESTION_MESSAGE);
+			if(passCode != null) {
+				if(passCode.isEmpty()) {
+					sysExec(new String[]{pythonCmd, espota.getAbsolutePath(), "-i", serialPort, "-s", "-f", imagePath});
+				} else {	
+					sysExec(new String[]{pythonCmd, espota.getAbsolutePath(), "-i", serialPort, "-s", "-f", imagePath, "-a", passCode});
+				}
+			}
+
     } else {
       System.out.println("[LittleFS] address : "+uploadAddress);
       System.out.println("[LittleFS] reset   : "+resetMethod);
