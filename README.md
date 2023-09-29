@@ -5,7 +5,7 @@ and uploads the image to ESP8266 flash memory.
 <br>
 
 ## Arduino IDE 2.x users
-Please see the [arduino-littlefs-plugin](https://github.com/earlephilhower/arduino-littlefs-upload) for use under IDE 2.2.1 or lateer
+Please see the [arduino-littlefs-plugin](https://github.com/earlephilhower/arduino-littlefs-upload) for use under IDE 2.2.1 or later
 
 ## Installation
 - Make sure you use one of the supported versions of Arduino IDE and have ESP8266 core installed.
