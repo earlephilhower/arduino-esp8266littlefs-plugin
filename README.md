@@ -1,8 +1,11 @@
-# Arduino ESP8266 LittleFS Filesystem Uploader
+# Arduino ESP8266 LittleFS Filesystem Uploader for IDE 1.x
 
 Arduino plugin which packs sketch data folder into LittleFS filesystem image,
 and uploads the image to ESP8266 flash memory.
 <br>
+
+## Arduino IDE 2.x users
+Please see the [arduino-littlefs-plugin](https://github.com/earlephilhower/arduino-littlefs-upload) for use under IDE 2.2.1 or lateer
 
 ## Installation
 - Make sure you use one of the supported versions of Arduino IDE and have ESP8266 core installed.
